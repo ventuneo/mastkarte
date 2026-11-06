@@ -1,5 +1,5 @@
 // Service Worker der Netzkarte: Karte und Leaflet offline verfügbar, beim Öffnen mit Netz immer die neueste Karte.
-const CACHE = 'mastkarte-3d206efafb26';
+const CACHE = 'mastkarte-7ab5a8d6b73f';
 const KERN = ['./', 'leaflet.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/apple-touch-icon.png'];
 const SCHRIFT = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
