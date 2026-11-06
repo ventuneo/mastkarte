@@ -19,7 +19,7 @@
 <title>Netzkarte Mastkontrolle</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;800&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
 <style>
 /* required styles */
 
@@ -681,162 +681,217 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
 </style>
 <style>
-/* Layout: Kopfleiste mit Kennzahlen, Ansichtsleiste, darunter die Karte über die ganze Restfläche.
-   Kartenbild: helle Planunterlage, Strassen weiss mit Kontur, Tram blau, Trolleybus grün,
-   kontrollierte Abschnitte als gelbe Leuchtstift-Markierung unter den Linien. */
+/* Gestaltung «Arbeitsplan im Feld»
+   Die Karte ist das Planblatt. Darum herum nur Werkzeug: oben das Schriftfeld mit dem Massstab als
+   Fortschritt, unten die Bedienleiste im Daumenbereich. Leuchtstift-Gelb heisst überall «kontrolliert»
+   und ist nie Schmuck. Farben nur mit Bedeutung: Linien blau/grün, Zustand rot/orange, Meldungen violett.
+   Bedienung in Atkinson Hyperlegible Next (lesbar bei Sonne und auf einen Blick, 1/l/I und 0/O klar
+   getrennt), Planbeschriftung auf der Karte in Barlow Semi Condensed. */
 :root {
-  --bg: #e8ecee;
-  --panel: #ffffff;
-  --ink: #17222b;
-  --muted: #5a6975;
-  --line: #d3dbe0;
-  --chip: #eef2f4;
+  --bg: #e7ebe9;          /* Planpapier */
+  --panel: #ffffff;       /* Flächen der Bedienung */
+  --ink: #18222c;         /* Tusche: Schrift, Rahmen von Schriftfeld und Leisten */
+  --muted: #56636e;
+  --line: #c9d1d5;
+  --chip: #eef1f2;        /* Eingabefelder, Knöpfe zweiter Stufe */
   --focus: #0b5cad;
-  --strasse: #ffffff;
-  --strasse-kontur: #c4cdd3;
-  --strasse-tunnel: #b9c3ca;
-  --kreis: #7d8b96;
-  --kreis-text: #9aa7b1;
-  --tram: #1d4f91;
-  --trolley: #138a6c;
+  --strasse: #ffffff; --strasse-kontur: #c4cdd3; --strasse-tunnel: #b9c3ca;
+  --kreis: #7d8b96; --kreis-text: #98a5ae;
+  --tram: #1d4f91; --trolley: #138a6c;
   --markierung: #ffd200;
-  --mast: #17222b;
-  --bad: #d0312d; --nm: #e08a00; --neu: #7b3fe4; --gps: #1a73e8;
-  --label: #34424d;
-  --halo: #e8ecee;
-  --f-display: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif;
-  --f-body: "Barlow", "Segoe UI", Arial, sans-serif;
+  --mast: #18222c; --bad: #d0312d; --nm: #d97f00; --neu: #7b3fe4; --gps: #1a73e8;
+  --label: #34424d; --halo: #e7ebe9;
+  --schatten: 0 6px 22px rgba(16, 24, 32, .2);
+  --f-ui: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, sans-serif;
+  --f-plan: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #12181d; --panel: #1b232a; --ink: #e5ebee; --muted: #9cabb5; --line: #2b363f; --chip: #252f37;
-    --focus: #79b6ff; --strasse: #2b353e; --strasse-kontur: #12181d; --strasse-tunnel: #222b33;
-    --kreis: #6b7a86; --kreis-text: #56636d; --tram: #6ea8ff; --trolley: #3ccaa2; --markierung: #ffd200;
-    --mast: #e5ebee; --bad: #ff6a5c; --nm: #f0a030; --neu: #b28cff; --gps: #6ea8ff; --label: #c3cdd4; --halo: #12181d; color-scheme: dark;
+    --bg: #11171c; --panel: #1a2229; --ink: #e6ecef; --muted: #9eadb7; --line: #2e3a44; --chip: #232d35; --focus: #79b6ff;
+    --strasse: #2a343d; --strasse-kontur: #11171c; --strasse-tunnel: #222b33; --kreis: #6b7a86; --kreis-text: #56636d;
+    --tram: #6ea8ff; --trolley: #3ccaa2; --mast: #e6ecef; --bad: #ff6a5c; --nm: #f0a030; --neu: #b28cff; --gps: #6ea8ff;
+    --label: #c3cdd4; --halo: #11171c; --schatten: 0 6px 22px rgba(0, 0, 0, .5); color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #12181d; --panel: #1b232a; --ink: #e5ebee; --muted: #9cabb5; --line: #2b363f; --chip: #252f37;
-  --focus: #79b6ff; --strasse: #2b353e; --strasse-kontur: #12181d; --strasse-tunnel: #222b33;
-  --kreis: #6b7a86; --kreis-text: #56636d; --tram: #6ea8ff; --trolley: #3ccaa2; --markierung: #ffd200;
-  --mast: #e5ebee; --bad: #ff6a5c; --nm: #f0a030; --neu: #b28cff; --gps: #6ea8ff; --label: #c3cdd4; --halo: #12181d; color-scheme: dark;
+  --bg: #11171c; --panel: #1a2229; --ink: #e6ecef; --muted: #9eadb7; --line: #2e3a44; --chip: #232d35; --focus: #79b6ff;
+  --strasse: #2a343d; --strasse-kontur: #11171c; --strasse-tunnel: #222b33; --kreis: #6b7a86; --kreis-text: #56636d;
+  --tram: #6ea8ff; --trolley: #3ccaa2; --mast: #e6ecef; --bad: #ff6a5c; --nm: #f0a030; --neu: #b28cff; --gps: #6ea8ff;
+  --label: #c3cdd4; --halo: #11171c; --schatten: 0 6px 22px rgba(0, 0, 0, .5); color-scheme: dark;
 }
+
+/* ---------- Grundgerüst: Schriftfeld, Ansichtsleiste, Karte, Bedienleiste */
 html, body { height: 100%; margin: 0; }
-body { background: var(--bg); color: var(--ink); font-family: var(--f-body); display: flex; flex-direction: column; min-height: 0; }
+html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+html, body { overscroll-behavior: none; }
+body { background: var(--bg); color: var(--ink); font: 400 1rem/1.4 var(--f-ui); display: flex; flex-direction: column; min-height: 0; }
+button { font: inherit; color: inherit; }
+button, .chip { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+:focus-visible { outline: 2.5px solid var(--focus); outline-offset: 2px; }
+.rand { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 
-header {
-  background: var(--panel); border-bottom: 1px solid var(--line);
-  padding-block: 10px; padding-inline: 16px;
-  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px;
+/* Schriftfeld */
+.kopf {
+  background: var(--panel); border-bottom: 2px solid var(--ink);
+  padding-top: max(10px, env(safe-area-inset-top, 0px)); padding-bottom: 10px;
+  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "titel" "zahlen" "massstab";
+  gap: 6px 24px; align-items: end;
 }
-.titel { display: flex; flex-direction: column; min-width: 0; }
-h1 { font-family: var(--f-display); font-weight: 700; font-size: 1.3rem; margin: 0; letter-spacing: .01em; text-wrap: balance; }
-.stand { font-size: .78rem; color: var(--muted); }
-.zahlen { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-left: auto; }
-.zahl { display: flex; flex-direction: column; min-width: 0; }
-.zahl b { font-family: var(--f-display); font-weight: 700; font-size: 1.2rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
-.zahl span { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+.kopf-titel { grid-area: titel; min-width: 0; }
+h1 { font: 800 1.2rem/1.15 var(--f-ui); margin: 0; }
+.stand { margin: 3px 0 0; font-size: .82rem; color: var(--muted); }
+.zahlen { grid-area: zahlen; display: flex; flex-wrap: wrap; gap: 2px 18px; }
+.zahl { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+.zahl b { font-weight: 800; font-size: 1.2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.zahl span { font-size: .85rem; color: var(--muted); }
 .zahl.rot b { color: var(--bad); }
-.balken { width: 132px; height: 6px; border-radius: 3px; background: var(--chip); overflow: hidden; margin-top: 4px; }
-.balken i { display: block; height: 100%; background: var(--markierung); }
+.zahl.neu b { color: var(--neu); }
+.zahl[hidden] { display: none; }
 
+/* Massstab als Fortschritt: Lineal über die Netzlänge, Leuchtstift bis zur kontrollierten Länge */
+.massstab { grid-area: massstab; min-width: 0; }
+.lineal { position: relative; height: 18px; margin-top: 2px; }
+.lineal .stift { position: absolute; left: 0; top: 2px; height: 14px; background: var(--markierung); border-radius: 2px 8px 8px 2px; }
+.lineal .grund { position: absolute; left: 0; right: 0; top: 9px; height: 0; border-top: 2px solid var(--ink); }
+.lineal .strich { position: absolute; top: 4px; width: 2px; height: 6px; margin-left: -1px; background: var(--ink); }
+.lineal .strich.gross { top: 1px; height: 9px; }
+.lineal-text { display: flex; justify-content: space-between; gap: 12px; font-size: .85rem; color: var(--muted); margin-top: 2px; }
+.lineal-text b { color: var(--ink); font-weight: 800; }
+
+@media (min-width: 640px) {
+  .kopf { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "titel zahlen" "massstab massstab"; }
+  .zahlen { justify-content: flex-end; }
+}
+@media (min-width: 1000px) {
+  .kopf { grid-template-columns: auto auto minmax(260px, 1fr); grid-template-areas: "titel zahlen massstab"; gap: 6px 32px; }
+  .zahlen { justify-content: flex-start; }
+}
+
+/* Ansichtsleiste */
 .leiste {
-  background: var(--panel); border-bottom: 1px solid var(--line);
-  padding-block: 7px; padding-inline: 16px;
+  background: var(--panel); border-bottom: 1px solid var(--line); padding-top: 8px; padding-bottom: 8px;
   display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; align-items: center;
 }
 .leiste::-webkit-scrollbar { display: none; }
 .chip {
-  font: 600 .84rem/1 var(--f-display); letter-spacing: .02em;
-  border: 1px solid var(--line); background: var(--chip); color: var(--ink);
-  border-radius: 999px; padding: 6px 12px 6px 8px; white-space: nowrap; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 7px; flex: none;
+  font: 600 .92rem/1 var(--f-ui); border: 1.5px solid var(--line); background: var(--panel); color: var(--ink);
+  border-radius: 8px; min-height: 40px; padding: 0 12px 0 7px; white-space: nowrap; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px; flex: none; transition: transform 100ms ease-out;
 }
 .chip.text { padding-left: 12px; }
-.chip small { font: 500 .74rem/1 var(--f-body); color: var(--muted); }
-.chip[aria-pressed="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
-.chip[aria-pressed="true"] small { color: var(--panel); opacity: .75; }
+.chip small { font-size: .85rem; font-weight: 400; color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--panel); }
+.chip[aria-pressed="true"] small { color: inherit; opacity: .8; }
+.chip:active { transform: scale(.97); }
 .nr {
-  display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding-inline: 4px;
-  border-radius: 4px; color: var(--panel); font: 700 .8rem/1 var(--f-display);
+  display: inline-grid; place-items: center; min-width: 26px; height: 24px; padding-inline: 4px; box-sizing: border-box;
+  border-radius: 3px; color: var(--panel); font: 700 .95rem/1 var(--f-plan);
 }
 .nr.tr { background: var(--tram); }
-.nr.tb { background: var(--trolley); border-radius: 10px; }
-.chip:focus-visible, button:focus-visible, input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+.nr.tb { background: var(--trolley); border-radius: 12px; }
 
-#karte { flex: 1 1 auto; min-height: 320px; background: var(--bg); }
-.leaflet-container { background: var(--bg); font-family: var(--f-body); }
-.leaflet-control-zoom a { background: var(--panel) !important; color: var(--ink) !important; border-color: var(--line) !important; }
-.leaflet-bar { border-color: var(--line) !important; }
-.leaflet-control-attribution {
-  background: color-mix(in srgb, var(--panel) 85%, transparent) !important; color: var(--muted) !important;
-  font-size: 10px; max-width: 72vw; line-height: 1.35;
-}
+/* Karte */
+#karte { flex: 1 1 auto; min-height: 260px; background: var(--bg); position: relative; }
+.leaflet-container { background: var(--bg); font-family: var(--f-ui); }
+.leaflet-bar { border: 1.5px solid var(--ink) !important; border-radius: 8px !important; overflow: hidden; box-shadow: none !important; }
+.leaflet-bar a { background: var(--panel) !important; color: var(--ink) !important; border-color: var(--line) !important; width: 40px !important; height: 40px !important; line-height: 40px !important; font: 400 22px/40px var(--f-ui) !important; }
+.leaflet-control-attribution { background: color-mix(in srgb, var(--panel) 85%, transparent) !important; color: var(--muted) !important; font-size: 10px; max-width: 72vw; line-height: 1.35; }
 .leaflet-control-attribution a { color: var(--muted) !important; }
+.leaflet-left { left: env(safe-area-inset-left, 0px); }
+.leaflet-right { right: env(safe-area-inset-right, 0px); }
+.beschriftung { pointer-events: none; }
 
-.panel {
-  background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
-  font-size: .8rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); max-width: 250px;
-}
+/* Legende und Ebenen (auf der Karte) */
+.panel { background: var(--panel); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 8px; font-size: .85rem; max-width: 260px; }
 .panel summary {
-  list-style: none; cursor: pointer; padding: 8px 12px; font: 700 .82rem/1 var(--f-display);
-  letter-spacing: .05em; text-transform: uppercase; display: flex; justify-content: space-between; gap: 12px;
+  list-style: none; cursor: pointer; padding: 0 12px; min-height: 40px; font: 600 .92rem/1 var(--f-ui);
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
 }
 .panel summary::-webkit-details-marker { display: none; }
-.panel summary::after { content: "+"; color: var(--muted); }
+.panel summary::after { content: "+"; font-size: 1.1rem; color: var(--muted); }
 .panel[open] summary::after { content: "–"; }
-.panel .inhalt { padding: 0 12px 10px; display: grid; gap: 6px; }
-.zeile { display: flex; align-items: center; gap: 9px; }
+.panel .inhalt { padding: 2px 12px 12px; display: grid; gap: 7px; max-height: min(44vh, 440px); overflow-y: auto; overscroll-behavior: contain; }
+.zeile { display: flex; align-items: center; gap: 10px; }
 .sw { flex: none; width: 28px; display: grid; place-items: center; }
 .sw i { display: block; }
-.sw .mark { width: 28px; height: 10px; border-radius: 5px; background: var(--markierung); opacity: .85; }
+.sw .mark { width: 28px; height: 11px; border-radius: 2px 6px 6px 2px; background: var(--markierung); }
 .sw .tram { width: 28px; height: 4px; border-radius: 2px; background: var(--tram); }
 .sw .troll { width: 28px; height: 3px; border-radius: 2px; background: var(--trolley); }
-.sw .str { width: 28px; height: 6px; border-radius: 3px; background: var(--strasse); box-shadow: 0 0 0 1px var(--strasse-kontur); }
 .sw .kr { width: 28px; height: 0; border-top: 2px dashed var(--kreis); }
 .sw .pt { width: 8px; height: 8px; border-radius: 50%; background: var(--mast); box-shadow: 0 0 0 2px var(--panel); }
 .sw .pt.bad { width: 12px; height: 12px; background: var(--bad); }
 .sw .pt.nm { width: 10px; height: 10px; background: var(--nm); }
+.sw .pt.neu { width: 12px; height: 12px; background: var(--neu); }
 .sw .halt { width: 9px; height: 9px; border-radius: 50%; background: var(--panel); box-shadow: 0 0 0 2px var(--tram); }
-.hinweis { color: var(--muted); font-size: .72rem; line-height: 1.35; border-top: 1px solid var(--line); padding-top: 6px; }
-.ebene { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.ebene input { accent-color: var(--ink); width: 16px; height: 16px; margin: 0; }
+.hinweis { color: var(--muted); font-size: .8rem; line-height: 1.4; border-top: 1px solid var(--line); padding-top: 7px; }
+.ebene { display: flex; align-items: center; gap: 10px; min-height: 32px; cursor: pointer; }
+.ebene input { accent-color: var(--ink); width: 18px; height: 18px; margin: 0; }
 
-.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--panel); color: var(--ink); }
-.leaflet-popup-content { margin: 12px 14px; font-size: .85rem; line-height: 1.4; min-width: 210px; }
-.leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
-.pop h3 { margin: 0 0 2px; font: 700 1.05rem/1.2 var(--f-display); }
-.pop .sub { color: var(--muted); font-size: .78rem; margin-bottom: 8px; }
-.pop dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0; }
+/* Mast-Fenster: Lauf-Nr. wie ein Mastschild */
+.leaflet-popup-content-wrapper { background: var(--panel); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 10px; box-shadow: var(--schatten); }
+.leaflet-popup-tip { background: var(--panel); box-shadow: none; border: 1.5px solid var(--ink); }
+.leaflet-popup-content { margin: 14px 16px; font-size: .9rem; line-height: 1.4; min-width: 220px; }
+.leaflet-container a.leaflet-popup-close-button { color: var(--muted); width: 32px; height: 32px; font: 400 22px/32px var(--f-ui); }
+.pop-kopf { display: flex; gap: 10px; align-items: flex-start; margin: 0 22px 10px 0; }
+.schild {
+  flex: none; min-width: 40px; box-sizing: border-box; padding: 5px 6px 4px; text-align: center;
+  border: 2px solid var(--ink); border-radius: 4px; font: 700 1.05rem/1 var(--f-plan); font-variant-numeric: tabular-nums;
+}
+.schild.neu { border-color: var(--neu); color: var(--neu); }
+.schild.bad { border-color: var(--bad); color: var(--bad); }
+.pop h3 { margin: 0; font: 800 1.05rem/1.2 var(--f-ui); }
+.pop .sub { color: var(--muted); font-size: .82rem; margin-top: 2px; }
+.pop dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; }
 .pop dt { color: var(--muted); }
 .pop dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-.pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font: 600 .75rem/1.4 var(--f-display); }
+.pop .ca { color: var(--muted); font-size: .8rem; margin-top: 8px; }
+.pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font: 600 .82rem/1.45 var(--f-ui); }
 .pill.ok { background: var(--chip); color: var(--ink); }
 .pill.bad { background: var(--bad); color: var(--panel); }
-.pill.nm { background: var(--nm); color: #fff; }
-.pop .ca { color: var(--muted); font-size: .72rem; margin-top: 8px; }
+.pill.nm { background: var(--nm); color: var(--panel); }
+.pill.neu { background: var(--neu); color: var(--panel); }
+.pill.gesendet { background: transparent; color: var(--neu); box-shadow: inset 0 0 0 1.5px var(--neu); }
+.pop .g-links { display: flex; gap: 6px; margin-top: 12px; }
+.pop .g-links a, .pop .weg {
+  flex: 1; display: grid; place-items: center; min-height: 42px; padding: 6px 8px; box-sizing: border-box; border-radius: 8px;
+  text-decoration: none; font: 600 .88rem/1.1 var(--f-ui); color: var(--ink); background: var(--chip); border: 1.5px solid var(--line);
+  touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; cursor: pointer; transition: transform 100ms ease-out;
+}
+.pop .weg { width: 100%; margin-top: 6px; color: var(--bad); }
+.pop .g-links a:active, .pop .weg:active { transform: scale(.97); }
 
-.beschriftung { pointer-events: none; }
-
-@media (max-width: 560px) {
-  .zahlen { margin-left: 0; width: 100%; justify-content: space-between; gap: 6px 12px; }
-  .balken { width: 100%; }
-  h1 { font-size: 1.12rem; }
-  .panel { font-size: .74rem; max-width: 210px; }
+/* Bedienleiste im Daumenbereich */
+.aktionen {
+  background: var(--panel); border-top: 2px solid var(--ink); display: flex; gap: 8px; justify-content: flex-end;
+  padding-top: 8px; padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)); position: relative; z-index: 1000;
+}
+.aktion {
+  min-height: 50px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--chip); color: var(--ink);
+  font: 600 .98rem/1.1 var(--f-ui); padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer; transition: transform 100ms ease-out; text-align: left;
+}
+.aktion svg { width: 22px; height: 22px; flex: none; }
+.aktion:active { transform: scale(.97); }
+.aktion[hidden] { display: none; }
+.aktion[aria-pressed="true"] { border-color: var(--gps); color: var(--gps); background: var(--panel); }
+.aktion.haupt { background: var(--neu); border-color: var(--neu); color: var(--panel); font-weight: 800; }
+.aktion.senden { background: var(--ink); border-color: var(--ink); color: var(--panel); }
+.aktion.senden.erneut { background: var(--chip); border-color: var(--line); color: var(--ink); }
+.aktion .zaehler { display: inline-grid; place-items: center; min-width: 24px; height: 24px; padding-inline: 6px; box-sizing: border-box; border-radius: 12px; background: var(--neu); color: var(--panel); font-size: .85rem; font-weight: 800; }
+@media (max-width: 430px) {
+  .stand .zusatz { display: none; }
+  .aktionen:has(#btn-senden:not([hidden])) #btn-gps { flex: 0 0 52px; padding: 0; }
+  .aktionen:has(#btn-senden:not([hidden])) #btn-gps span { display: none; }
+  .aktionen:has(#btn-senden:not([hidden])) .aktion.haupt { flex-grow: 1; }
+  .aktion { font-size: .92rem; }
+}
+@media (max-width: 600px) {
+  .aktionen { justify-content: stretch; gap: 6px; }
+  .aktion { flex: 1 1 0; padding: 0 8px; gap: 6px; }
+  .aktion.haupt { flex-grow: 1.5; }
 }
 
-/* ---------- Erfassung im Feld */
-.zahl.neu b { color: var(--neu); }
-.zahl[hidden] { display: none; }
-.fab { display: grid; gap: 8px; }
-.fab button {
-  font: 700 .9rem/1 var(--f-display); letter-spacing: .02em; border-radius: 999px; cursor: pointer;
-  padding: 12px 16px; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
-  box-shadow: 0 2px 8px rgba(0,0,0,.18); display: inline-flex; align-items: center; gap: 8px; justify-content: center; min-height: 44px;
-}
-.fab button.haupt { background: var(--neu); color: #fff; border-color: var(--neu); }
-.fab button[hidden] { display: none; }
-.fab button[aria-pressed="true"] { border-color: var(--gps); color: var(--gps); }
+/* ---------- Erfassung im Feld: Fadenkreuz und Blätter */
 .fadenkreuz { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; z-index: 900; pointer-events: none; display: none; }
 .fadenkreuz::before, .fadenkreuz::after { content: ""; position: absolute; background: var(--neu); }
 .fadenkreuz::before { left: 22px; top: 0; width: 2px; height: 46px; }
@@ -845,80 +900,75 @@ h1 { font-family: var(--f-display); font-weight: 700; font-size: 1.3rem; margin:
 body.platzieren .fadenkreuz { display: block; }
 .blatt {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 2000; background: var(--panel); color: var(--ink);
-  border-top: 1px solid var(--line); box-shadow: 0 -6px 24px rgba(0,0,0,.18); border-radius: 14px 14px 0 0;
-  padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px)); max-height: 82vh; overflow-y: auto; display: none;
+  border-top: 2px solid var(--ink); border-radius: 14px 14px 0 0; box-shadow: var(--schatten);
+  padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  max-height: 85vh; overflow-y: auto; overscroll-behavior: contain; display: none; box-sizing: border-box;
 }
 .blatt.offen { display: block; }
-.blatt h2 { font: 700 1.1rem/1.2 var(--f-display); margin: 0 0 4px; }
-.blatt .sub { color: var(--muted); font-size: .8rem; margin-bottom: 10px; }
-.blatt .reihe { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.blatt .reihe > * { flex: 1 1 auto; }
-.feld { display: grid; gap: 3px; margin-bottom: 9px; min-width: 0; }
-.feld span { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-.feld input, .feld select, .feld textarea {
-  font: 500 1rem/1.3 var(--f-body); color: var(--ink); background: var(--chip); border: 1px solid var(--line);
-  border-radius: 8px; padding: 9px 10px; width: 100%; box-sizing: border-box; min-height: 42px;
+@media (min-width: 760px) {
+  .blatt { left: auto; right: 16px; bottom: 16px; width: 420px; max-height: calc(100vh - 32px); border: 2px solid var(--ink); border-radius: 14px; }
 }
-.feld textarea { min-height: 60px; resize: vertical; }
-.zwei-sp { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.segment { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 9px; }
-.segment button { font: 600 .9rem/1 var(--f-display); padding: 11px 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--chip); color: var(--ink); cursor: pointer; }
+.blatt h2 { font: 800 1.2rem/1.2 var(--f-ui); margin: 0 0 4px; }
+.blatt .sub { color: var(--muted); font-size: .9rem; margin-bottom: 12px; }
+.feld { display: grid; gap: 4px; margin-bottom: 10px; min-width: 0; }
+.feld > span { font-size: .88rem; font-weight: 600; color: var(--muted); }
+.feld input, .feld select, .feld textarea {
+  font: 400 1rem/1.3 var(--f-ui); color: var(--ink); background: var(--chip); border: 1.5px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; width: 100%; box-sizing: border-box; min-height: 48px;
+}
+.feld textarea { min-height: 72px; resize: vertical; }
+.zwei-sp { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.segment { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
+.segment button { font: 600 .95rem/1.1 var(--f-ui); min-height: 48px; padding: 6px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--chip); color: var(--ink); cursor: pointer; transition: transform 100ms ease-out; }
+.segment button:active { transform: scale(.97); }
 .segment button[aria-pressed="true"][data-z="i.O."] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
-.segment button[aria-pressed="true"][data-z="auffällig"] { background: var(--bad); color: #fff; border-color: var(--bad); }
-.segment button[aria-pressed="true"][data-z="nicht messbar"] { background: var(--nm); color: #fff; border-color: var(--nm); }
-.knoepfe { display: flex; gap: 8px; margin-top: 6px; }
-.knoepfe button { flex: 1; font: 700 .95rem/1 var(--f-display); padding: 13px; border-radius: 10px; cursor: pointer; border: 1px solid var(--line); background: var(--chip); color: var(--ink); min-height: 46px; }
-.knoepfe button.ja { background: var(--neu); border-color: var(--neu); color: #fff; }
+.segment button[aria-pressed="true"][data-z="auffällig"] { background: var(--bad); color: var(--panel); border-color: var(--bad); }
+.segment button[aria-pressed="true"][data-z="nicht messbar"] { background: var(--nm); color: var(--panel); border-color: var(--nm); }
+.knoepfe { display: flex; gap: 8px; margin-top: 8px; }
+.knoepfe button { flex: 1; font: 800 1rem/1 var(--f-ui); min-height: 52px; border-radius: 10px; cursor: pointer; border: 1.5px solid var(--line); background: var(--chip); color: var(--ink); transition: transform 100ms ease-out; }
+.knoepfe button:active { transform: scale(.97); }
+.knoepfe button.ja { background: var(--neu); border-color: var(--neu); color: var(--panel); }
 .knoepfe button:disabled { opacity: .5; cursor: default; }
-.koord { font: 500 .78rem/1.3 ui-monospace, Menlo, monospace; color: var(--muted); }
-.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 2100;
-  background: var(--ink); color: var(--panel); padding: 10px 14px; border-radius: 10px; font-size: .88rem; max-width: calc(100vw - 32px); display: none; }
+.koord { font-size: .88rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(78px + env(safe-area-inset-bottom, 0px)); z-index: 2100;
+  background: var(--ink); color: var(--panel); padding: 12px 16px; border-radius: 10px; font-size: .92rem; line-height: 1.35;
+  width: max-content; max-width: min(440px, calc(100vw - 32px)); box-sizing: border-box; display: none; box-shadow: var(--schatten);
+}
 .toast.an { display: block; }
-.pill.neu { background: var(--neu); color: #fff; }
-.pop .weg { margin-top: 8px; font: 600 .8rem/1 var(--f-display); border: 1px solid var(--line); background: var(--chip); color: var(--ink); border-radius: 8px; padding: 8px 10px; cursor: pointer; }
-.pop .g-links { display: flex; gap: 6px; margin-top: 10px; }
-.pop .g-links a { flex: 1; display: grid; place-items: center; min-height: 38px; padding: 6px 8px; border-radius: 8px; text-decoration: none;
-  font: 600 .82rem/1.1 var(--f-display); letter-spacing: .02em; color: var(--ink); background: var(--chip); border: 1px solid var(--line);
-  touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; transition: transform 100ms ease-out; }
-.pop .g-links a:active { transform: scale(.97); }
-.pill.gesendet { background: transparent; color: var(--neu); box-shadow: inset 0 0 0 1.5px var(--neu); }
-.fab button.senden { background: var(--ink); color: var(--panel); border-color: var(--ink); }
-.fab button.senden.erneut { background: var(--panel); color: var(--ink); border-color: var(--line); }
-.fab button.senden b { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding-inline: 5px; border-radius: 11px; background: var(--neu); color: #fff; font-size: .82rem; }
-
-/* ---------- Handy und Web-App: kein Tipp-Blitz, kein Mitziehen der Seite, Abstand zu Notch und Home-Balken */
-html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
-html, body { overscroll-behavior: none; }
-header { padding-top: max(10px, env(safe-area-inset-top, 0px)); padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
-.leiste { padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
-.leaflet-bottom { bottom: env(safe-area-inset-bottom, 0px); }
-.leaflet-left { left: env(safe-area-inset-left, 0px); }
-.leaflet-right { right: env(safe-area-inset-right, 0px); }
-.blatt { overscroll-behavior: contain; padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
-button, .chip { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
-.fab button:active, .knoepfe button:active, .segment button:active, .chip:active { transform: scale(.97); }
-.fab button, .knoepfe button, .segment button, .chip { transition: transform 100ms ease-out; }
+body:has(.blatt.offen) .toast { bottom: auto; top: calc(12px + env(safe-area-inset-top, 0px)); }
+#blatt-info .pop-kopf { margin-right: 0; }
+#blatt-info .knoepfe { margin-top: 14px; }
+@media (prefers-reduced-motion: reduce) { .chip, .aktion, .segment button, .knoepfe button, .pop .g-links a { transition: none; } }
 </style>
 
-<header>
-  <div class="titel">
+<header class="kopf rand">
+  <div class="kopf-titel">
     <h1>Netzkarte Mastkontrolle</h1>
-    <span class="stand" id="stand"></span>
+    <p class="stand" id="stand"></p>
   </div>
   <div class="zahlen">
     <div class="zahl"><b id="z-masten">–</b><span>Masten erfasst</span></div>
     <div class="zahl rot"><b id="z-auff">–</b><span>auffällig</span></div>
     <div class="zahl neu" id="z-neu-box" hidden><b id="z-neu">0</b><span>neu gemeldet</span></div>
-    <div class="zahl"><b id="z-km">–</b><span>Netz kontrolliert</span><div class="balken" aria-hidden="true"><i id="z-balken"></i></div></div>
+  </div>
+  <div class="massstab">
+    <div class="lineal" id="lineal" role="img"><i class="stift" id="z-balken"></i><i class="grund"></i></div>
+    <div class="lineal-text"><span><b id="z-km">–</b></span><span id="z-netz"></span></div>
   </div>
 </header>
-<nav class="leiste" aria-label="Ansicht wählen" id="leiste"></nav>
-<div id="karte" role="region" aria-label="Karte des VBZ-Fahrleitungsnetzes"><div class="fadenkreuz" aria-hidden="true"><i></i></div></div>
+<nav class="leiste rand" aria-label="Ansicht wählen" id="leiste"></nav>
+<div id="karte" role="region" aria-label="Karte des Fahrleitungsnetzes von Tram und Trolleybus"><div class="fadenkreuz" aria-hidden="true"><i></i></div></div>
+<nav class="aktionen rand" aria-label="Erfassung im Feld">
+  <button type="button" class="aktion" id="btn-gps" aria-pressed="false" aria-label="Mein Standort"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span>Standort</span></button>
+  <button type="button" class="aktion senden" id="btn-senden" hidden></button>
+  <button type="button" class="aktion haupt" id="btn-melden" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Mast erfassen</button>
+</nav>
 
 <section class="blatt" id="blatt-platz" aria-label="Standort des Masts wählen">
   <h2>Wo steht der Mast?</h2>
   <div class="sub">Karte verschieben oder antippen, bis das Kreuz auf dem Mast liegt.</div>
-  <label class="feld"><span>oder Koordinaten einfügen</span><input id="p-koord" inputmode="decimal" placeholder="47.3803860, 8.5377673" autocomplete="off"></label>
+  <label class="feld"><span>Oder Koordinaten einfügen</span><input id="p-koord" inputmode="decimal" placeholder="47.3803860, 8.5377673" autocomplete="off"></label>
   <div class="koord" id="p-anzeige"></div>
   <div class="knoepfe"><button type="button" id="p-ab">Abbrechen</button><button type="button" class="ja" id="p-weiter">Weiter</button></div>
 </section>
@@ -943,14 +993,18 @@ button, .chip { touch-action: manipulation; -webkit-user-select: none; user-sele
   </div>
   <div id="f-schaden" hidden>
     <div class="zwei-sp">
-      <label class="feld"><span>Referenz mm</span><input id="f-ref" inputmode="decimal" autocomplete="off"></label>
-      <label class="feld"><span>Rost mm</span><input id="f-rost" inputmode="decimal" autocomplete="off"></label>
+      <label class="feld"><span>Referenz in mm</span><input id="f-ref" inputmode="decimal" autocomplete="off"></label>
+      <label class="feld"><span>Rost in mm</span><input id="f-rost" inputmode="decimal" autocomplete="off"></label>
     </div>
     <label class="feld"><span>Befund</span><input id="f-befund" autocomplete="off" placeholder="z. B. Rost am Mastfuss"></label>
   </div>
   <label class="feld"><span>Bemerkung</span><textarea id="f-bem" placeholder="z. B. bei Haltestelle, Mast mit Kombikasten"></textarea></label>
   <label class="feld"><span>Kontrolliert von</span><select id="f-von"><option>Fabio Sorio</option><option>Amir Assaad</option></select></label>
   <div class="knoepfe"><button type="button" id="f-zurueck">Zurück</button><button type="button" class="ja" id="f-speichern">Speichern</button></div>
+</section>
+<section class="blatt" id="blatt-info" aria-label="Angaben zum Mast">
+  <div id="info-inhalt"></div>
+  <div class="knoepfe"><button type="button" id="info-zu">Schliessen</button></div>
 </section>
 <datalist id="dl-strassen"></datalist><datalist id="dl-richtung"></datalist>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -980,9 +1034,17 @@ window.KARTENDATEN={"kreise":[{"k":1,"r":[[854195,4737971,102,22,47,-118,21,13,5
   const fmt1 = v => v.toLocaleString('de-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   document.getElementById('z-masten').textContent = D.masten.length;
   document.getElementById('z-auff').textContent = auff;
-  document.getElementById('z-km').textContent = `ca. ${fmt1(D.km_kontrolliert)} von ${Math.round(D.km_netz)} km`;
+  document.getElementById('z-km').textContent = `${fmt1(D.km_kontrolliert)} km kontrolliert`;
+  document.getElementById('z-netz').textContent = `${fmt1(pct)} % von ${Math.round(D.km_netz)} km Netz`;
   document.getElementById('z-balken').style.width = Math.max(pct, 1.5) + '%';
-  document.getElementById('stand').textContent = `Stand ${D.stand} · ${fmt1(pct)} % des Fahrleitungsnetzes von Tram und Trolleybus`;
+  document.getElementById('stand').innerHTML = `<span class="zusatz">Fahrleitung Tram und Trolleybus, </span>Stand ${esc(D.stand)}`;
+  // Massstab: Lineal über die Netzlänge, Strich alle 10 km (lang alle 50 km); der Leuchtstift reicht bis zur kontrollierten Länge
+  const lineal = document.getElementById('lineal');
+  lineal.setAttribute('aria-label', `${fmt1(D.km_kontrolliert)} von ${Math.round(D.km_netz)} km kontrolliert`);
+  [...Array(Math.floor(D.km_netz / 10) + 1).keys()].map(i => i * 10).concat([D.km_netz]).forEach(km => {
+    const st = document.createElement('i'); st.className = 'strich' + (km % 50 === 0 || km === D.km_netz ? ' gross' : '');
+    st.style.left = (km / D.km_netz * 100) + '%'; lineal.appendChild(st);
+  });
 
   // ---------- Karte und Ebenen
   const karte = window.__karte = L.map('karte', {
@@ -1048,7 +1110,7 @@ window.KARTENDATEN={"kreise":[{"k":1,"r":[[854195,4737971,102,22,47,-118,21,13,5
     p._bad = bad; p._nm = nm; p._l = m.ls && m.ls.length ? m.ls : [m.linie];
     const adr = [m.strasse, m.hnr].filter(Boolean).join(' ');
     const zeilen = [
-      ['Linie', esc([m.linie, m.richtung].filter(Boolean).join(' · ') || '–')],
+      ['Linie', esc([m.linie, m.richtung].filter(Boolean).join(', ') || '–')],
       (m.ls || []).length > 1 ? ['Linien hier', esc(m.ls.join(', '))] : null,
       m.nr ? ['Mast-Nr.', esc(m.nr)] : null,
       ['Kontrolle', esc(m.datum)],
@@ -1058,7 +1120,8 @@ window.KARTENDATEN={"kreise":[{"k":1,"r":[[854195,4737971,102,22,47,-118,21,13,5
       m.bem ? ['Bemerkung', esc(m.bem)] : null,
       ['Stadtkreis', esc(m.kreis ?? '–')]
     ].filter(Boolean);
-    p.bindPopup(`<div class="pop"><h3>${esc(adr)}</h3><div class="sub">Lauf-Nr. ${esc(m.lauf)} · ${esc(m.eig)}</div>
+    const wer = m.eig === 'VBZ' ? 'Mast der VBZ' : 'Mast des EWZ (öffentliche Beleuchtung)';
+    p.bindPopup(`<div class="pop"><div class="pop-kopf"><span class="schild${bad ? ' bad' : ''}" title="Lauf-Nr. ${esc(m.lauf)}">${esc(m.lauf)}</span><div><h3>${esc(adr)}</h3><div class="sub">${wer}</div></div></div>
       <dl>${zeilen.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>
       ${m.genau ? '' : '<div class="ca">Lage ungefähr (keine Hausnummer erfasst)</div>'}${gLinks(m.lat, m.lon)}</div>`, { maxWidth: 290 });
     return p.addTo(karte);
@@ -1159,7 +1222,7 @@ window.KARTENDATEN={"kreise":[{"k":1,"r":[[854195,4737971,102,22,47,-118,21,13,5
         const frueher = gesetzt.get(name) || [];
         if (frueher.some(q => Math.hypot(q.x - p.x, q.y - p.y) < 320)) return;
         const fs = kl <= 2 ? 12 : 11;
-        g.font = `${kl <= 2 ? 600 : 500} ${fs}px "Barlow", "Segoe UI", Arial, sans-serif`;
+        g.font = `${kl <= 2 ? 600 : 500} ${fs + 1}px "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif`;
         const w = g.measureText(name).width;
         if ((w / 2 + 4) * mpp > span) return;           // Strasse zu kurz/kurvig für den Namen
         const r = ang * Math.PI / 180, cs = Math.abs(Math.cos(r)), sn = Math.abs(Math.sin(r));
@@ -1238,20 +1301,21 @@ window.KARTENDATEN={"kreise":[{"k":1,"r":[[854195,4737971,102,22,47,-118,21,13,5
     div.style.display = 'grid'; div.style.gap = '6px';
     const offen = window.innerWidth >= 560 ? ' open' : '';
     div.innerHTML = `
-      <details class="panel"${offen}><summary>Legende</summary><div class="inhalt">
+      <details class="panel" name="tafel"${offen}><summary>Legende</summary><div class="inhalt">
         <div class="zeile"><span class="sw"><i class="mark"></i></span>kontrolliert</div>
         <div class="zeile"><span class="sw"><i class="tram"></i></span>Tram (Fahrleitung)</div>
         <div class="zeile"><span class="sw"><i class="troll"></i></span>Trolleybus (Fahrleitung)</div>
         <div class="zeile"><span class="sw"><i class="pt"></i></span>Mast i.O.</div>
         <div class="zeile"><span class="sw"><i class="pt bad"></i></span>Mast auffällig</div>
         <div class="zeile"><span class="sw"><i class="pt nm"></i></span>Mast nicht messbar / nicht zugänglich</div>
+        <div class="zeile"><span class="sw"><i class="pt neu"></i></span>Neu gemeldet, noch nicht im Excel</div>
         <div class="zeile"><span class="sw"><i class="halt"></i></span>Haltestelle</div>
         <div class="zeile"><span class="sw"><span class="nr tr" style="min-width:18px;height:15px;font-size:.7rem">3</span></span>Tramlinie</div>
         <div class="zeile"><span class="sw"><span class="nr tb" style="min-width:18px;height:15px;font-size:.7rem">33</span></span>Trolleybuslinie</div>
         <div class="zeile"><span class="sw"><i class="kr"></i></span>Grenze Stadtkreis</div>
         ${(D.manuell || []).length ? `<div class="hinweis">Gelb ohne Mastpunkte: Strecken, die als kontrolliert gemeldet sind, ohne einzeln erfasste Masten (${D.manuell.length} Abschnitte, ca. ${fmt1(D.manuell.reduce((s, i) => s + (i.km || 0), 0))} km). Details per Klick auf die Strecke.</div>` : ''}
       </div></details>
-      <details class="panel"${offen}><summary>Ebenen</summary><div class="inhalt">
+      <details class="panel" name="tafel"><summary>Ebenen</summary><div class="inhalt">
         <label class="ebene"><input type="checkbox" id="eb-luftbild"><span>Luftbild (swisstopo)</span></label>
         <label class="ebene"><input type="checkbox" id="eb-strassen" checked><span>Strassennamen</span></label>
         <label class="ebene"><input type="checkbox" id="eb-linien" checked><span>Liniennummern</span></label>
@@ -1277,22 +1341,25 @@ window.KARTENDATEN={"kreise":[{"k":1,"r":[[854195,4737971,102,22,47,-118,21,13,5
   const linien = Object.keys(D.km_linie)
     .sort((a, b) => b.slice(0, 2).localeCompare(a.slice(0, 2)) || parseInt(a.slice(3)) - parseInt(b.slice(3)));
   const leiste = document.getElementById('leiste');
-  const knopf = (id, html, klasse) => {
+  const knopf = (id, html, klasse, titel) => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'chip' + (klasse ? ' ' + klasse : ''); b.id = 'ansicht-' + id.replace(/\s/g, '');
     b.innerHTML = html; b.setAttribute('aria-pressed', String(id === auswahl));
+    if (titel) { b.title = titel; b.setAttribute('aria-label', titel); }
     b.addEventListener('click', () => {
       auswahl = id; leiste.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c === b)));
       stile(); zoomen();
     });
     leiste.appendChild(b);
   };
-  knopf('alle', 'Alle kontrollierten Strecken', 'text');
+  knopf('alle', 'Alle Strecken', 'text');
   knopf('auff', `Auffällig / nicht messbar <small>${auff + nmess}</small>`, 'text');
   linien.forEach(l => {
     const [art, n] = l.split(' ');
     const anzahl = D.masten.filter(m => (m.ls || [m.linie]).includes(l)).length;
-    knopf(l, `<span class="nr ${art === 'TR' ? 'tr' : 'tb'}">${esc(n)}</span>${art === 'TR' ? 'Tram' : 'Trolleybus'} <small>${anzahl ? anzahl + ' Masten · ' : ''}ca. ${fmt1(D.km_linie[l])} km</small>`);
+    const wort = art === 'TR' ? 'Tram' : 'Trolleybus', km = `ca. ${fmt1(D.km_linie[l])} km kontrolliert`;
+    knopf(l, `<span class="nr ${art === 'TR' ? 'tr' : 'tb'}">${esc(n)}</span>${anzahl ? `${anzahl} Masten` : `<small>${fmt1(D.km_linie[l])} km</small>`}`, '',
+      `${wort} ${n}: ${anzahl ? anzahl + ' Masten, ' : ''}${km}`);
   });
 
   function zoomen() {
@@ -1316,6 +1383,21 @@ window.KARTENDATEN={"kreise":[{"k":1,"r":[[854195,4737971,102,22,47,-118,21,13,5
   const merke = (k, v) => { try { if (v === undefined) return localStorage.getItem('mk-' + k); localStorage.setItem('mk-' + k, v); } catch (e) { return null; } };
   let toastT; const toast = (t, ms) => { const el = $('toast'); el.textContent = t; el.classList.add('an'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('an'), ms || 3500); };
   const f7 = v => (+v).toFixed(7);
+
+  // Auf dem Handy erscheinen die Angaben zu Mast oder Strecke als Blatt von unten statt als Fenster auf der Karte
+  const infoZu = () => $('blatt-info').classList.remove('offen');
+  karte.on('popupopen', e => {
+    if (window.innerWidth > 600 || document.body.classList.contains('platzieren')) return;
+    const inhalt = e.popup.getContent(), ll = e.popup.getLatLng();
+    karte.closePopup();
+    $('info-inhalt').innerHTML = typeof inhalt === 'string' ? inhalt : (inhalt && inhalt.outerHTML) || '';
+    $('blatt-info').classList.add('offen'); $('blatt-info').scrollTop = 0;
+    const h = $('blatt-info').offsetHeight, ms = karte.getSize(), oben = $('karte').getBoundingClientRect().top;
+    const sichtbar = Math.max(80, Math.min(ms.y, window.innerHeight - h - oben));
+    karte.panBy(karte.latLngToContainerPoint(ll).subtract(L.point(ms.x / 2, sichtbar / 2)), { animate: false });
+  });
+  $('info-zu').addEventListener('click', infoZu);
+  karte.on('click', infoZu);
 
   // Auswahllisten
   const strNamen = [...new Set(D.strassenNamen.map(s => s[0]))].sort((a, b) => a.localeCompare(b, 'de'));
@@ -1350,16 +1432,7 @@ window.KARTENDATEN={"kreise":[{"k":1,"r":[[854195,4737971,102,22,47,-118,21,13,5
   }
 
   // Bedienknöpfe
-  const fab = L.control({ position: 'bottomright' });
-  fab.onAdd = function () {
-    const div = L.DomUtil.create('div', 'fab');
-    div.innerHTML = `<button type="button" class="senden" id="btn-senden" hidden></button>
-      <button type="button" id="btn-gps" aria-pressed="false">◎ Mein Standort</button>
-      <button type="button" class="haupt" id="btn-melden" hidden>＋ Mast erfassen</button>`;
-    L.DomEvent.disableClickPropagation(div); L.DomEvent.disableScrollPropagation(div);
-    return div;
-  };
-  fab.addTo(karte);
+  // Bedienknöpfe stehen in der Bedienleiste unter der Karte (HTML)
   $('btn-gps').addEventListener('click', () => starteGps(true));
 
   // Platzieren mit Fadenkreuz
@@ -1408,7 +1481,7 @@ window.KARTENDATEN={"kreise":[{"k":1,"r":[[854195,4737971,102,22,47,-118,21,13,5
     return bd < 120 ? best : '';
   }
   function formOeffnen() {
-    $('f-koord').textContent = `${f7(platz.lat)}, ${f7(platz.lon)} · ${platz.quelle}`;
+    $('f-koord').textContent = `${f7(platz.lat)}, ${f7(platz.lon)} (${platz.quelle})`;
     $('f-strasse').value = naechsteStrasse(platz.lat, platz.lon) || merke('strasse') || '';
     $('f-nr').value = ''; $('f-mastnr').value = ''; $('f-ref').value = ''; $('f-rost').value = ''; $('f-befund').value = ''; $('f-bem').value = '';
     const li = merke('linie'); if (li && linienAlle.includes(li)) $('f-linie').value = li;
@@ -1476,14 +1549,14 @@ window.KARTENDATEN={"kreise":[{"k":1,"r":[[854195,4737971,102,22,47,-118,21,13,5
       const p = L.circleMarker([m.lat, m.lon], { renderer: R.masten, pane: 'masten', radius: 7.5, color: gesendet ? css('--neu') : css('--panel'),
         weight: gesendet ? 3 : 2, fillColor: gesendet ? css('--panel') : css('--neu'), fillOpacity: 1 });
       const adr = [m.strasse, m.nr].filter(Boolean).join(' ') || 'Ohne Adresse';
-      const z = [['Linie', esc([m.linie, m.richtung].filter(Boolean).join(' · ') || '–')], m.mastnr ? ['Mast-Nr.', esc(m.mastnr)] : null,
+      const z = [['Linie', esc([m.linie, m.richtung].filter(Boolean).join(', ') || '–')], m.mastnr ? ['Mast-Nr.', esc(m.mastnr)] : null,
         ['Zustand', `<span class="pill ${m.zustand === 'auffällig' ? 'bad' : m.zustand === 'nicht messbar' ? 'nm' : 'ok'}">${esc(m.zustand)}</span>`],
         m.ref_mm != null ? ['Messung', esc(`${m.ref_mm} / ${m.rost_mm ?? '–'} mm`)] : null, m.befund ? ['Befund', esc(m.befund)] : null,
         m.bemerkung ? ['Bemerkung', esc(m.bemerkung)] : null, ['Gemeldet', esc(m.gemeldet_lokal || '')],
         gesendet && m.gesendet ? ['Gesendet', esc(new Date(m.gesendet).toLocaleString('de-CH', { dateStyle: 'short', timeStyle: 'short' }))] : null,
         ['Koordinaten', esc(`${m.lat}, ${m.lon}`)]].filter(Boolean);
-      const status = gesendet ? '<span class="pill gesendet">an Claude gesendet</span>' : '<span class="pill neu">neu gemeldet</span>';
-      p.bindPopup(`<div class="pop"><h3>${esc(adr)}</h3><div class="sub">${status} · noch nicht im Excel</div>
+      const status = gesendet ? 'An Claude gesendet, noch nicht im Excel' : 'Neu gemeldet, noch nicht an Claude gesendet';
+      p.bindPopup(`<div class="pop"><div class="pop-kopf"><span class="schild neu">neu</span><div><h3>${esc(adr)}</h3><div class="sub">${status}</div></div></div>
         <dl>${z.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl>${gLinks(m.lat, m.lon)}<button type="button" class="weg" data-weg="${esc(m.id)}">Meldung löschen</button></div>`, { maxWidth: 290 });
       neuPunkte.push(p.addTo(karte));
     });
@@ -1496,7 +1569,8 @@ window.KARTENDATEN={"kreise":[{"k":1,"r":[[854195,4737971,102,22,47,-118,21,13,5
     if (speicher !== lokal || !meldungen.length) { b.hidden = true; return; }
     const neu = meldungen.filter(m => m.status !== 'gesendet').length;
     b.hidden = false; b.classList.toggle('erneut', !neu);
-    b.innerHTML = neu ? `↗ An Claude senden <b>${neu}</b>` : `↻ Erneut senden <b>${meldungen.length}</b>`;
+    const pfeil = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M5 13v6h14v-6"/></svg>';
+    b.innerHTML = neu ? `${pfeil}<span>An Claude senden</span><b class="zaehler">${neu}</b>` : `${pfeil}<span>Erneut senden</span><b class="zaehler">${meldungen.length}</b>`;
   }
   function meldungsText(liste) {
     const zeilen = liste.map((m, i) => {
@@ -1538,7 +1612,7 @@ window.KARTENDATEN={"kreise":[{"k":1,"r":[[854195,4737971,102,22,47,-118,21,13,5
     const b = e.target.closest('[data-weg]'); if (!b || !speicher) return;
     if (speicher === lokal && !confirm('Diese Meldung vom Gerät löschen?')) return;
     b.disabled = true;
-    try { await speicher.del(b.dataset.weg); karte.closePopup(); toast('Meldung gelöscht.'); }
+    try { await speicher.del(b.dataset.weg); karte.closePopup(); infoZu(); toast('Meldung gelöscht.'); }
     catch (err) { b.disabled = false; toast(speicher === lokal ? 'Löschen ging nicht.' : 'Löschen ging nicht. Nur Personen mit Bearbeitungsrecht können Meldungen ändern.', 5000); }
   });
   $('f-speichern').addEventListener('click', async () => {
